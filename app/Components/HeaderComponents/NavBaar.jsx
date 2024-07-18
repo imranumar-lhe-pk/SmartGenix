@@ -11,14 +11,64 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Link from "next/link"; // For Next.js navigation
-import { Box } from "@mui/material";
+import { Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@mui/material";
 
 const NavBaar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [loginType, setLoginType] = useState(""); // "mechanic" or "user"
+  
 
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
+
+  const handleOpenModal = (type) => {
+    setLoginType(type);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setLoginType(""); // Reset login type
+  };
+
+  const [data, setData] = useState({
+    email: '',
+    password: ''
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setData({
+      ...data, [name]: value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+
+    const validationError = {}
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simplified email regex
+
+    if(!data.email.trim()){
+      validationError.email = 'please enter email'
+    } else if(!regex.test(data.email)) {
+      validationError.email = 'invalid email'
+    }
+
+    if(data.password.trim()){
+      validationError.password ='please enter password'
+    }
+
+    setErrors(validationError)
+    setData({email: '', password: ''})
+    setModalOpen(false);
+    setLoginType(""); // Reset login type
+  }
+
 
   return (
     <AppBar position="static" color="transparent" elevation={0}>
@@ -30,10 +80,11 @@ const NavBaar = () => {
           px: { xs: 1, sm: 2 },
         }}
       >
-        <Typography variant="h6" component="div" sx={{ flexGrow: 0 }}>
+        <Typography variant="h6"  component="div" sx={{ flexGrow: 0 }}>
           <img
             src="/logo.png"
             alt="Logo"
+            
             style={{ height: "30px", marginLeft: "60px" }}
           />
         </Typography>
@@ -68,6 +119,7 @@ const NavBaar = () => {
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Button
             color="inherit"
+            onClick={() => handleOpenModal("mechanic")}
             sx={{
               border: "2px solid blue",
               marginLeft: "10px",
@@ -79,14 +131,13 @@ const NavBaar = () => {
           </Button>
           <Button
             color="inherit"
-            
+            onClick={() => handleOpenModal("user")}
             sx={{
               border: "2px solid blue",
               marginLeft: "10px",
               color: "white",
               display: { xs: "none", md: "flex" },
             }}
-            href="/loginMechanic"
           >
             Login as a user
           </Button>
@@ -105,13 +156,14 @@ const NavBaar = () => {
         >
           <MenuIcon />
         </IconButton>
+        
         <Drawer
           anchor="right"
           open={drawerOpen}
           onClose={toggleDrawer}
           sx={{
             '& .MuiDrawer-paper': {
-              width: '250px', // Adjust the width as needed
+              width: '250px',
             },
           }}
         >
@@ -123,14 +175,74 @@ const NavBaar = () => {
             ))}
           </List>
           <Box sx={{ padding: "10px" }}>
-            <Button sx={{ border: "1px solid blue", marginBottom: "10px", width: "100%" }}>
+            <Button onClick={() => handleOpenModal("mechanic")} sx={{ border: "1px solid blue", marginBottom: "10px", width: "100%" }}>
               Login as a mechanic
             </Button>
-            <Button sx={{ border: "1px solid blue", width: "100%" }}>
+            <Button onClick={() => handleOpenModal("user")} sx={{ border: "1px solid blue", width: "100%" }}>
               Login as a user
             </Button>
           </Box>
         </Drawer>
+        
+        <Dialog open={modalOpen} onClose={handleCloseModal}>
+          <DialogTitle>{loginType === "mechanic" ? "Login as Mechanic" : "Login as User"}</DialogTitle>
+          <DialogContent>
+            {/* Add your login form here */}
+            <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "50vh",
+      }}
+    >
+     
+      <form onSubmit={handleSubmit} style={{ width: "300px" }}>
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Email"
+          type="email"
+          name="email"
+          value={data.email}
+          onChange={handleChange}
+          required
+        />
+        {errors.email && <span style={{ color: 'red' }}>{errors.email}</span>}
+        <TextField
+          fullWidth
+          margin="normal"
+          label="Password"
+          type="password"
+          name="password"
+          value={data.password}
+          onChange={handleChange}
+          required
+        />
+        {errors.password && <span style={{ color: 'red' }}>{errors.password}</span>}
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+          fullWidth
+          href="/steps"
+        >
+          Login
+        </Button>
+      </form>
+    </Box>
+            <p>This is the login form for {loginType === "mechanic" ? "mechanics" : "users"}.</p>
+            {/* Example input fields could go here */}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal} color="primary">
+              Cancel
+            </Button>
+         
+          </DialogActions>
+        </Dialog>
       </Toolbar>
     </AppBar>
   );
